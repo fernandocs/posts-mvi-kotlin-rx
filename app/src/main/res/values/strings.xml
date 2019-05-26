@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Posts</string>
+    <plurals name="comments_size">
+        <item quantity="one">%s comment</item>
+        <item quantity="other">%s comments</item>
+    </plurals>
+</resources>
