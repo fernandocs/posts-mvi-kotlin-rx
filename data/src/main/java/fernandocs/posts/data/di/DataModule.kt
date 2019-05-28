@@ -1,6 +1,5 @@
 package fernandocs.posts.data.di
 
-import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import fernandocs.posts.data.ApiClientFactory
