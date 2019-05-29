@@ -20,7 +20,9 @@ class DetailsPresenter @Inject constructor(
 
     fun getStates(viewState: DetailsViewState): Observable<DetailsViewState> {
         val initialReducer =
-            if (viewState.content is ContentViewState.Initial) loadPost(viewState.postId)
+            if (viewState.content is ContentViewState.Initial) viewState.postId?.let {
+                loadPost(it)
+            } ?: Observable.just { oldState: DetailsViewState -> oldState.copy(content = ContentViewState.Error) }
             else Observable.empty()
         val intentReducer = view.getIntents().flatMap(::handleIntent)
         return initialReducer.concatWith(intentReducer)
@@ -38,6 +40,11 @@ class DetailsPresenter @Inject constructor(
     }
 
     private fun loadPost(postId: Int): Observable<(DetailsViewState) -> DetailsViewState> {
+        fun getOnErrorReducer(): (DetailsViewState) -> DetailsViewState =
+            { oldState: DetailsViewState ->
+                oldState.copy(content = ContentViewState.Error)
+            }
+
         fun getOnSubmitRequestReducer(): (DetailsViewState) -> DetailsViewState =
             { oldState: DetailsViewState ->
                 oldState.copy(
@@ -92,6 +99,7 @@ class DetailsPresenter @Inject constructor(
                     }
                     .toObservable()
             }
+            .onErrorReturn { getOnErrorReducer() }
             .mergeWith(commentsObservable)
             .startWith(getOnSubmitRequestReducer())
     }

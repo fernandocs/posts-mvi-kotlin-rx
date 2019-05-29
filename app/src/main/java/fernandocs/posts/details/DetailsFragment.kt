@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.navArgs
 import com.bumptech.glide.Glide
@@ -20,19 +21,17 @@ class DetailsFragment : Fragment(), DetailsView {
 
     @Inject
     lateinit var presenter: DetailsPresenter
+    @Inject
+    lateinit var viewModel: DetailsViewModel
 
     private val disposable = CompositeDisposable()
-    private lateinit var currentViewState: DetailsViewState
     private val args: DetailsFragmentArgs by navArgs()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AndroidSupportInjection.inject(this)
 
-        savedInstanceState?.getParcelable<DetailsViewState>(KEY_STATE)
-            ?.let { currentViewState = it }
-
-        if (!::currentViewState.isInitialized) currentViewState = DetailsViewState(postId = args.postId)
+        viewModel.currentViewState.postId ?: run { viewModel.currentViewState.postId = args.postId }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -42,15 +41,10 @@ class DetailsFragment : Fragment(), DetailsView {
 
     override fun onStart() {
         super.onStart()
-        presenter.getStates(currentViewState)
+        presenter.getStates(viewModel.currentViewState)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(::render)
             .addTo(disposable)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(KEY_STATE, currentViewState)
-        super.onSaveInstanceState(outState)
     }
 
     override fun onStop() {
@@ -61,7 +55,10 @@ class DetailsFragment : Fragment(), DetailsView {
     override fun getIntents(): Observable<DetailsIntent> = Observable.empty()
 
     private fun render(viewState: DetailsViewState) {
-        currentViewState = viewState
+        viewModel.currentViewState = viewState
+
+        progressBar.visibility = if (viewState.content is ContentViewState.Loading) { View.VISIBLE } else { View.GONE }
+
         when (viewState.content) {
             is ContentViewState.Content -> {
                 viewState.content.userUserViewState?.let {
@@ -79,10 +76,9 @@ class DetailsFragment : Fragment(), DetailsView {
                     )
                 }
             }
+            is ContentViewState.Error -> {
+                Toast.makeText(activity, R.string.error_message, Toast.LENGTH_SHORT).show()
+            }
         }
-    }
-
-    companion object {
-        private const val KEY_STATE = "KEY_STATE"
     }
 }

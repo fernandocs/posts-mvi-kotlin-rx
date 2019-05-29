@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.xwray.groupie.GroupAdapter
@@ -25,20 +26,16 @@ class HomeFragment : Fragment(), HomeView {
     @Inject
     lateinit var presenter: HomePresenter
 
+    @Inject
+    lateinit var viewModel: HomeViewModel
+
     private val disposable = CompositeDisposable()
-    private lateinit var currentViewState: HomeViewState
     private val adapter = GroupAdapter<ViewHolder>()
     private val intents = PublishSubject.create<HomeIntent>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AndroidSupportInjection.inject(this)
-
-        // Restore view state on configuration change or app killed in background
-        savedInstanceState?.getParcelable<HomeViewState>(KEY_STATE)
-            ?.let { currentViewState = it }
-
-        if (!::currentViewState.isInitialized) currentViewState = HomeViewState()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -58,15 +55,10 @@ class HomeFragment : Fragment(), HomeView {
 
     override fun onStart() {
         super.onStart()
-        presenter.getStates(currentViewState)
+        presenter.getStates(viewModel.currentViewState)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(::render)
             .addTo(disposable)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putParcelable(KEY_STATE, currentViewState)
-        super.onSaveInstanceState(outState)
     }
 
     override fun onStop() {
@@ -82,14 +74,16 @@ class HomeFragment : Fragment(), HomeView {
     }
 
     private fun render(viewState: HomeViewState) {
-        currentViewState = viewState
+        viewModel.currentViewState = viewState
         viewPostsLoading.isRefreshing = viewState.content == ContentViewState.Loading
         when (viewState.content) {
             is ContentViewState.Content -> adapter.update(viewState.content.postsViewState.map(::PostItem))
+            is ContentViewState.Empty -> {
+                Toast.makeText(activity, R.string.empty_message, Toast.LENGTH_SHORT).show()
+            }
+            is ContentViewState.Error -> {
+                Toast.makeText(activity, R.string.error_message, Toast.LENGTH_SHORT).show()
+            }
         }
-    }
-
-    companion object {
-        private const val KEY_STATE = "KEY_STATE"
     }
 }

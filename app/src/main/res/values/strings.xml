@@ -4,4 +4,6 @@
         <item quantity="one">%s comment</item>
         <item quantity="other">%s comments</item>
     </plurals>
+    <string name="error_message">Error while retrieving the data.</string>
+    <string name="empty_message">No posts result</string>
 </resources>

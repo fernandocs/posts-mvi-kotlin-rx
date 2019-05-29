@@ -1,7 +1,11 @@
 package fernandocs.posts.di
 
-import javax.inject.Scope
+import androidx.lifecycle.ViewModel
+import dagger.MapKey
+import kotlin.reflect.KClass
 
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class PerScreen
+@MapKey
+@Target(AnnotationTarget.FUNCTION)
+annotation class ViewModelKey(
+    val value: KClass<out ViewModel>
+)

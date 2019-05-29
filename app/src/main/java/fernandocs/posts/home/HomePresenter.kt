@@ -45,6 +45,11 @@ class HomePresenter @Inject constructor(
     }
 
     private fun loadPosts(): Observable<(HomeViewState) -> HomeViewState> {
+        fun getOnErrorReducer(): (HomeViewState) -> HomeViewState =
+            { oldState: HomeViewState ->
+                oldState.copy(content = ContentViewState.Error)
+            }
+
         fun getOnSubmitRequestReducer(): (HomeViewState) -> HomeViewState =
             { oldState: HomeViewState ->
                 oldState.copy(
@@ -66,6 +71,7 @@ class HomePresenter @Inject constructor(
         return getPosts.execute()
             .observeOn(AndroidSchedulers.mainThread())
             .map(::getOnSuccessReducer)
+            .onErrorReturn { getOnErrorReducer() }
             .toObservable()
             .startWith(getOnSubmitRequestReducer())
     }

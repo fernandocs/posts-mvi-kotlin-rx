@@ -1,16 +1,20 @@
 package fernandocs.posts.details
 
 import android.os.Parcelable
+import androidx.lifecycle.ViewModel
 import fernandocs.posts.domain.comments.Comment
 import fernandocs.posts.domain.posts.Post
 import fernandocs.posts.domain.users.User
 import kotlinx.android.parcel.Parcelize
-import java.lang.StringBuilder
 import javax.inject.Inject
+
+class DetailsViewModel @Inject constructor(): ViewModel() {
+    var currentViewState: DetailsViewState = DetailsViewState()
+}
 
 @Parcelize
 data class DetailsViewState(
-    val postId: Int,
+    var postId: Int? = null,
     val content: ContentViewState = ContentViewState.Initial
 ) : Parcelable
 

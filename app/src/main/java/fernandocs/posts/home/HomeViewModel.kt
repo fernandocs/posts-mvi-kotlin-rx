@@ -1,9 +1,14 @@
 package fernandocs.posts.home
 
 import android.os.Parcelable
+import androidx.lifecycle.ViewModel
 import fernandocs.posts.domain.posts.Post
 import kotlinx.android.parcel.Parcelize
 import javax.inject.Inject
+
+class HomeViewModel @Inject constructor(): ViewModel() {
+    var currentViewState: HomeViewState = HomeViewState()
+}
 
 @Parcelize
 data class HomeViewState(
